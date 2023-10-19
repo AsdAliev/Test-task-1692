@@ -5,60 +5,54 @@ from sqlalchemy import MetaData, create_engine
 class DB:
     def __init__(self, host="localhost", database="name", password="pass", username="postgres", port="",
                  dialect="postgresql", driver="psycopg2"):
-        self.engine = create_engine(
+        self.__engine = create_engine(
             "{}+{}://{}:{}@{}{}/{}".format(dialect, driver, username, password, host, port, database))
-        self.metadata = MetaData()
-        self.users = Table("users", self.metadata,
-                           Column("id", Integer(), primary_key=True),
-                           Column("username", String(100), nullable=False),
-                           Column("full_name", String(100), nullable=False),
-                           Column("full_name_display", String(100), nullable=False),
-                           Column("color", String(20), nullable=False),
-                           Column("bio", String(300)),
-                           Column("lang", String(2)),
-                           Column("theme", String(10)),
-                           Column("photo", String(400)),
-                           Column("gravatar_id", String(50), nullable=False)
-                           )
-        self.projects = Table("projects", self.metadata,
-                              Column("id", Integer(), primary_key=True),
-                              Column("name", String(200), nullable=False),
-                              Column("slug", String(200), nullable=False),
-                              Column("description", String(3000), nullable=False),
-                              Column("created_date", DateTime(), nullable=False),
-                              # owner_id не foreign_key, так как некоторые пользователи были удалены
-                              Column("owner_id", Integer(), nullable=False)
-                              )
-        self.roles = Table("roles", self.metadata,
-                           Column("id", Integer(), primary_key=True),
-                           Column("name", String(200), nullable=False),
-                           Column("slug", String(200), nullable=False),
-                           Column("order", Integer(), nullable=False),
-                           Column("computable", Boolean(), nullable=False),
-                           Column("members_count", Integer(), nullable=False),
-                           Column("project_id", ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
-                           )
-        self.project_members = Table("project_members", self.metadata,
-                                     # user_id не foreign_key, так как некоторые пользователи были удалены
-                                     Column("user_id", Integer(), primary_key=True),
-                                     Column("project_id", Integer(), ForeignKey("projects.id", ondelete="CASCADE"),
-                                            primary_key=True),
-                                     Column("role", Integer(), ForeignKey("roles.id", ondelete="CASCADE"))
-                                     )
-        self.epics = Table("epics", self.metadata,
-                           Column("id", Integer(), primary_key=True),
-                           Column("ref", Integer(), nullable=False),
-                           Column("status", Integer(), nullable=False),
-                           Column("created_date", DateTime(), nullable=False),
-                           Column("subject", String(200), nullable=False),
-                           Column("project_id", ForeignKey("projects.id", ondelete="CASCADE"), nullable=False),
-                           # owner_id не foreign_key, так как некоторые пользователи были удалены
-                           Column("owner_id", Integer(), nullable=False)
-                           )
+        self.__metadata = MetaData()
+        self.__users = Table("users", self.__metadata,
+                             Column("id", Integer(), primary_key=True),
+                             Column("username", String(100), nullable=False),
+                             Column("full_name", String(100), nullable=False),
+                             Column("full_name_display", String(100), nullable=False),
+                             Column("color", String(20), nullable=False),
+                             Column("bio", String(300)),
+                             Column("lang", String(2)),
+                             Column("theme", String(10)),
+                             Column("photo", String(400)),
+                             Column("gravatar_id", String(50), nullable=False)
+                             )
+        self.__projects = Table("projects", self.__metadata,
+                                Column("id", Integer(), primary_key=True),
+                                Column("name", String(200), nullable=False),
+                                Column("slug", String(200), nullable=False),
+                                Column("description", String(3000), nullable=False),
+                                Column("created_date", DateTime(), nullable=False),
+                                # owner_id не foreign_key, так как некоторые пользователи были удалены
+                                Column("owner_id", Integer(), nullable=False)
+                                )
+        self.__roles = Table("roles", self.__metadata,
+                             Column("id", Integer(), primary_key=True),
+                             Column("name", String(200), nullable=False),
+                             Column("slug", String(200), nullable=False),
+                             Column("order", Integer(), nullable=False),
+                             Column("computable", Boolean(), nullable=False),
+                             Column("members_count", Integer(), nullable=False),
+                             Column("project_id", ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+                             )
 
-    def upload_table(self, table, data):
+        self.__epics = Table("epics", self.__metadata,
+                             Column("id", Integer(), primary_key=True),
+                             Column("ref", Integer(), nullable=False),
+                             Column("status", Integer(), nullable=False),
+                             Column("created_date", DateTime(), nullable=False),
+                             Column("subject", String(200), nullable=False),
+                             Column("project_id", ForeignKey("projects.id", ondelete="CASCADE"), nullable=False),
+                             # owner_id не foreign_key, так как некоторые пользователи были удалены
+                             Column("owner_id", Integer(), nullable=False)
+                             )
+
+    def __upload_table(self, table, data):
         t_insert = table.insert().values(data)
-        conn = self.engine.connect()
+        conn = self.__engine.connect()
         t_delete = table.delete()
         conn.execute(t_delete)
         conn.execute(t_insert)
@@ -80,7 +74,7 @@ class DB:
                     "photo": value["photo"],
                     "gravatar_id": value["gravatar_id"]}
             )
-        self.upload_table(self.users, data)
+        self.__upload_table(self.__users, data)
 
     def upload_projects_table(self, data_list):
         data = []
@@ -95,7 +89,7 @@ class DB:
                     "owner_id": value["owner"]["id"]
                 }
             )
-        self.upload_table(self.projects, data)
+        self.__upload_table(self.__projects, data)
 
     def upload_roles_table(self, data_list):
         data = []
@@ -111,7 +105,7 @@ class DB:
                     "project_id": value["project"]
                 }
             )
-        self.upload_table(self.roles, data)
+        self.__upload_table(self.__roles, data)
 
     def upload_epics_table(self, data_list):
         data = []
@@ -127,17 +121,27 @@ class DB:
                     "owner_id": value["owner"]
                 }
             )
-        self.upload_table(self.epics, data)
+        self.__upload_table(self.__epics, data)
 
-    def get_db(self):
-        conn = self.engine.connect()
-
-        s = self.users.select()
+    def get_db(self, table_name):
+        conn = self.__engine.connect()
+        match table_name:
+            case "users":
+                table = self.__users
+            case "projects":
+                table = self.__projects
+            case "roles":
+                table = self.__roles
+            case "epics":
+                table = self.__epics
+            case _:
+                table = self.__users
+        s = table.select()
         r = conn.execute(s)
-        print(r.fetchall())
+        return r.fetchall()
 
     def create_tables(self):
-        self.metadata.create_all(self.engine)
+        self.__metadata.create_all(self.__engine)
 
     def delete_tables(self):
-        self.metadata.drop_all(self.engine)
+        self.__metadata.drop_all(self.__engine)
