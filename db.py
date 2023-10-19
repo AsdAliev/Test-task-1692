@@ -57,10 +57,11 @@ class DB:
                            )
 
     def upload_table(self, table, data):
-        insert = table.insert().values(data)
+        t_insert = table.insert().values(data)
         conn = self.engine.connect()
-        table.delete()
-        conn.execute(insert)
+        t_delete = table.delete()
+        conn.execute(t_delete)
+        conn.execute(t_insert)
         conn.commit()
 
     def upload_users_table(self, data_list):

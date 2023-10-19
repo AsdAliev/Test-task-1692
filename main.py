@@ -7,7 +7,6 @@ from api import TaigaAPI
 def upload_all_tables():
     req = TaigaAPI(TAIGA_TOKEN)
     db = DB(host=DB_HOST, database=DB_DATABASE, password=DB_PASSWORD, username=DB_USERNAME)
-    db.delete_tables()
     db.create_tables()
     db.upload_users_table(req.get("users"))
     db.upload_projects_table(req.get("projects"))
