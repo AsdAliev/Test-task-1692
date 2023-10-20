@@ -37,5 +37,6 @@ class TaigaAPI:
                     "Content-Type": "application/json",
                     "Authorization": "{} {}".format(self.__token_type, token)
                 }
+                return token
         except requests.HTTPError as err:
             print(f"Couldn't authorize. HTTP error occured: {err}")

@@ -7,10 +7,11 @@ DB_HOST = ""
 DB_DATABASE = ""
 DB_PASSWORD = ""
 DB_USERNAME = ""
-TAIGA_TOKEN = "" _Необязательно_
-TAIGA_USERNAME = "" _Необязательно_
-TAIGA_PASSWORD = "" _Необязательно_
+TAIGA_TOKEN = ""
+TAIGA_USERNAME = ""
+TAIGA_PASSWORD = ""
 ```
+Если есть Taiga_token, то можно не авторизоваться. То есть Taiga_token и (Taiga_username, Taiga_password) взаимозаменяемы.
 2. Затем запустите следующий код в терминале для запуска:
 ```
 python -m venv venv

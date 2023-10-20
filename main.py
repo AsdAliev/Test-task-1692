@@ -4,9 +4,8 @@ from db import DB
 from api import TaigaAPI
 
 
-def upload_all_tables(username, password):
-    req = TaigaAPI()
-    req.auth(username=username, password=password)
+def upload_all_tables(token):
+    req = TaigaAPI(token)
     db = DB(host=DB_HOST, database=DB_DATABASE, password=DB_PASSWORD, username=DB_USERNAME)
     db.create_tables()
     db.upload_users_table(req.get("users"))
@@ -23,12 +22,15 @@ if __name__ == "__main__":
         DB_DATABASE = os.environ.get("DB_DATABASE")
         DB_PASSWORD = os.environ.get("DB_PASSWORD")
         DB_USERNAME = os.environ.get("DB_USERNAME")
-        TAIGA_USERNAME = os.environ.get("TAIGA_USERNAME")
-        TAIGA_PASSWORD = os.environ.get("TAIGA_PASSWORD")
-        # TAIGA_TOKEN = os.environ.get("TAIGA_TOKEN")
+        TAIGA_TOKEN = os.environ.get("TAIGA_TOKEN")
+        if not TAIGA_TOKEN:
+            TAIGA_USERNAME = os.environ.get("TAIGA_USERNAME")
+            TAIGA_PASSWORD = os.environ.get("TAIGA_PASSWORD")
+            auth = TaigaAPI()
+            TAIGA_TOKEN = auth.auth(TAIGA_USERNAME, TAIGA_PASSWORD)
     else:
         print("Добавьте файл '.env' со всеми необходимыми переменными среды")
         exit(1)
 
-    upload_all_tables(TAIGA_USERNAME, TAIGA_PASSWORD)
+    upload_all_tables(TAIGA_TOKEN)
     print("Все таблицы и записи были добавлены в базу данных!")
